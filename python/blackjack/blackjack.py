@@ -82,7 +82,7 @@ class Card(object):
     if isinstance(other, Card):
       if self.value < other.value:
         return True
-      if self.importance < other.importance:
+      if (self.value == other.value) and (self.importance < other.importance):
         return True
     return False
     
@@ -90,7 +90,7 @@ class Card(object):
     if isinstance(other, Card):
       if self.value > other.value:
         return True
-      if self.importance > other.importance:
+      if (self.value == other.value) and (self.importance > other.importance):
         return True
     return False
 
@@ -122,7 +122,7 @@ def BlackjackHighest(strArr):
   
   #Get highest card
   highest_card = max(hand).name
-
+  
   #Return result
   if hand_value == 21:
     return "blackjack " + highest_card
