@@ -1,6 +1,7 @@
 #Define a playing card
 class Card(object):
   card_value_dict = {
+    'rank': [ 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'ace' ],
     'one': 1,
     'two': 2,
     'three': 3,
@@ -17,21 +18,6 @@ class Card(object):
     'ace': 11
   };
 
-  int_to_string_dict = { 
-    '1': 'one',
-    '2': 'two',
-    '3': 'three',
-    '4': 'four',
-    '5': 'five',
-    '6': 'six',
-    '7': 'seven',
-    '8': 'eight',
-    '9': 'nine',
-    '11': 'ace'
-  };
-
-  importance_list = [ 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'ace' ]
-
   def __init__(self, value):
     self.name = value
     self.value = None
@@ -42,12 +28,8 @@ class Card(object):
 
   @name.setter
   def name(self, value):
-    if str(value).lower() in self.card_value_dict.keys():
-      self._name = str(value)
-    elif str(value) in self.int_to_string_dict.keys():
-      self._name = self.int_to_string_dict[str(value)]
-    elif str(value) == '10':
-      raise ValueError('More than one face card can have a value of ' + str(value) + '.')
+    if (str(value).lower() in self.card_value_dict.keys()) and (str(value).lower() != 'rank'):
+      self._name = str(value).lower()
     else:
       raise ValueError('Could not classify ' + str(value) + ' as a playing card.')
 
@@ -61,16 +43,16 @@ class Card(object):
   @value.setter
   def value(self, value):
     if value != None:
-      if 0 < value < 12:
+      if type(value) is int:
         self._value = value
       else:
-        raise ValueError('Value can only be 1 through 11.')
+        raise ValueError('Value must be an integer.')
     else:
       self._value = None
 
   @property
   def importance(self):
-    return self.importance_list.index(self.name)
+    return self.card_value_dict['rank'].index(self.name)
 
   def __eq__(self, other):
     if isinstance(other, Card):
