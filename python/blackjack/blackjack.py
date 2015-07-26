@@ -1,26 +1,11 @@
 #Define a playing card
 class Card(object):
-  card_value_dict = {
-    'rank': [ 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'ace' ],
-    'one': 1,
-    'two': 2,
-    'three': 3,
-    'four': 4,
-    'five': 5,
-    'six': 6,
-    'seven': 7,
-    'eight': 8,
-    'nine': 9,
-    'ten': 10,
-    'jack': 10,
-    'queen': 10,
-    'king': 10,
-    'ace': 11
-  };
+  rank = [ 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'ace' ]
+  card_value = { card: i + 1 if i < 10 else 11 if card == 'ace' else 10 for i, card in enumerate(rank) }
 
-  def __init__(self, value):
-    self.name = value
-    self.value = None
+  def __init__(self, card, value = None):
+    self.name = card
+    self.value = value
 
   #Return card name.
   @property
@@ -30,7 +15,7 @@ class Card(object):
   #Set card name for class using card_value_dict as validation set.
   @name.setter
   def name(self, value):
-    if (str(value).lower() in self.card_value_dict.keys()) and (str(value).lower() != 'rank'):
+    if str(value).lower() in self.card_value.keys():
       self._name = str(value).lower()
     else:
       raise ValueError('Could not classify ' + str(value) + ' as a playing card.')
@@ -39,7 +24,7 @@ class Card(object):
   @property
   def value(self):
     if self._value == None:
-      return self.card_value_dict[self.name]
+      return self.card_value[self.name]
     else:
       return self._value
 
@@ -58,7 +43,7 @@ class Card(object):
   #Needed for identifying highest card between several face cards with shared values.
   @property
   def importance(self):
-    return self.card_value_dict['rank'].index(self.name)
+    return self.rank.index(self.name)
 
   #Check if two Card classes are equal.
   #Card value gets compared to ensure a default ace and munged ace do not match.
@@ -76,7 +61,7 @@ class Card(object):
       if (self.value == other.value) and (self.importance < other.importance):
         return True
     return False
-    
+
   def __gt__(self, other):
     if isinstance(other, Card):
       if self.value > other.value:
@@ -85,42 +70,47 @@ class Card(object):
         return True
     return False
 
-#Evaluate hand value for blackjack.
-#Evaluate highest card by importance and value.
+#Define hand of cards 
+class Hand(object):
+  def __init__(self, cards):
+    self.cards = cards
+
+  #Return value of hand taking aces into consideration.
+  @property
+  def value(self):
+    while self.__value() > 21:
+      if Card('ace') in self.cards:
+        for index in xrange(len(self.cards)):
+          if self.cards[index] == Card('ace'):
+            self.cards[index] = Card('ace', 1)
+            break
+      else:
+        break
+    return self.__value()
+
+  #Return highest ranked card in hand.
+  @property
+  def highest(self):
+    return max(self.cards).name
+
+  #Get current hand value.
+  def __value(self):
+    value = 0
+    for card in self.cards:
+      value = value + card.value     
+    return value
+
 def BlackjackHighest(strArr):
   #Create a hand of cards
-  hand = []
-  for string in strArr:
-    hand.append(Card(string))
-  
-  #Get initial hand value
-  hand_value = 0
-  for card in hand:
-    hand_value = hand_value + card.value
+  hand = Hand([ Card(string) for string in strArr ])
 
-  #Munge ace card values to 1 if hand value is over 21 and there is at least one ace.
-  while (Card('ace') in hand) and (hand_value > 21):
-    for index in xrange(len(hand)):
-      if hand[index] == Card('ace'):
-        low_ace = Card('ace')
-        low_ace.value = 1
-        hand[index] = low_ace
-        break    
-    
-    hand_value = 0
-    for card in hand:
-      hand_value = hand_value + card.value
-  
-  #Get highest card
-  highest_card = max(hand).name
-  
   #Return result
-  if hand_value == 21:
-    return "blackjack " + highest_card
-  elif hand_value > 21:
-    return "above " + highest_card
+  if hand.value == 21:
+    return "blackjack " + hand.highest
+  elif hand.value > 21:
+    return "above " + hand.highest
   else:
-    return "below " + highest_card
-  
+    return "below " + hand.highest
+
 #Print result
 print BlackjackHighest(raw_input())
