@@ -90,10 +90,9 @@ class Hand(object):
   #Return value of hand taking aces into consideration.
   @property
   def value(self):
-    if Card('ace') in self.cards:
-      ace_index = [ index for index, card in enumerate(self.cards) if card == Card('ace')]
-      while self.__value() > 21 and ace_index:
-        self.cards[ace_index.pop(0)] = Card('ace', 1)
+    ace_index = [ index for index, card in enumerate(self.cards) if card == Card('ace')]
+    while self.__value() > 21 and ace_index:
+      self.cards[ace_index.pop(0)] = Card('ace', 1)
     return self.__value()
 
   #Return highest ranked card in hand.
