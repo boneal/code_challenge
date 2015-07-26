@@ -22,10 +22,12 @@ class Card(object):
     self.name = value
     self.value = None
 
+  #Return card name.
   @property
   def name(self):
     return self._name
 
+  #Set card name for class using card_value_dict as validation set.
   @name.setter
   def name(self, value):
     if (str(value).lower() in self.card_value_dict.keys()) and (str(value).lower() != 'rank'):
@@ -33,6 +35,7 @@ class Card(object):
     else:
       raise ValueError('Could not classify ' + str(value) + ' as a playing card.')
 
+  #Return card_value_dict defined card value if card value not set.
   @property
   def value(self):
     if self._value == None:
@@ -40,6 +43,7 @@ class Card(object):
     else:
       return self._value
 
+  #Set card value. Only needed for ace when flipping between 11 default and 1.
   @value.setter
   def value(self, value):
     if value != None:
@@ -50,16 +54,21 @@ class Card(object):
     else:
       self._value = None
 
+  #Return card rank from card_value_dict rank key value.
+  #Needed for identifying highest card between several face cards with shared values.
   @property
   def importance(self):
     return self.card_value_dict['rank'].index(self.name)
 
+  #Check if two Card classes are equal.
+  #Card value gets compared to ensure a default ace and munged ace do not match.
   def __eq__(self, other):
     if isinstance(other, Card):
       if (other.name == self.name) and (other.value == self.value):
         return True
     return False
-  
+
+  #Allow Card class to be evaluated by max(list) when in an array.  
   def __lt__(self, other):
     if isinstance(other, Card):
       if self.value < other.value:
@@ -89,7 +98,7 @@ def BlackjackHighest(strArr):
   for card in hand:
     hand_value = hand_value + card.value
 
-  #Munge value if over 21 and there is at least one ace
+  #Munge ace card values to 1 if hand value is over 21 and there is at least one ace.
   while (Card('ace') in hand) and (hand_value > 21):
     for index in xrange(len(hand)):
       if hand[index] == Card('ace'):
