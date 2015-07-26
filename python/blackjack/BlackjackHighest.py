@@ -92,8 +92,9 @@ class Hand(object):
   @property
   def value(self):
     ace_index = [ index for index, card in enumerate(self.cards) if card == Card('ace')]
+    pop_an_ace = ace_index.pop
     while sum(self.cards) > 21 and ace_index:
-      self.cards[ace_index.pop(0)] = Card('ace', 1)
+      self.cards[pop_an_ace(0)] = Card('ace', 1)
     return sum(self.cards)
 
   #Return highest ranked card in hand.
