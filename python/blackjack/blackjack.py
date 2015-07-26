@@ -12,7 +12,7 @@ class Card(object):
   def name(self):
     return self._name
 
-  #Set card name for class using card_value_dict as validation set.
+  #Set card name for class using card_value dict as validation set.
   @name.setter
   def name(self, value):
     if str(value).lower() in self.card_value.keys():
@@ -20,7 +20,7 @@ class Card(object):
     else:
       raise ValueError('Could not classify ' + str(value) + ' as a playing card.')
 
-  #Return card_value_dict defined card value if card value not set.
+  #Return card value defined in card_value dict if not set.
   @property
   def value(self):
     if self._value == None:
@@ -39,7 +39,7 @@ class Card(object):
     else:
       self._value = None
 
-  #Return card rank from card_value_dict rank key value.
+  #Return card rank from rank list index.
   #Needed for identifying highest card between several face cards with shared values.
   @property
   def importance(self):
@@ -53,7 +53,7 @@ class Card(object):
         return True
     return False
 
-  #Allow Card class to be evaluated by max(list) when in an array.  
+  #Allow Card class to be evaluated by max(list) when in a list.  
   def __lt__(self, other):
     if isinstance(other, Card):
       if self.value < other.value:
@@ -70,15 +70,17 @@ class Card(object):
         return True
     return False
 
-#Define hand of cards 
+#Define hand of cards.
 class Hand(object):
   def __init__(self, cards):
     self.cards = cards
 
+  #Returns list of cards in hand.
   @property
   def cards(self):
     return self._cards
 
+  #Performs input validation when adding list of cards.
   @cards.setter
   def cards(self, value):
     if (type(value) != list) or any(True if not isinstance(x, Card) else False for x in value):
