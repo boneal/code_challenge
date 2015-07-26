@@ -75,6 +75,16 @@ class Hand(object):
   def __init__(self, cards):
     self.cards = cards
 
+  @property
+  def cards(self):
+    return self._cards
+
+  @cards.setter
+  def cards(self, value):
+    if (type(value) != list) or any(True if not isinstance(x, Card) else False for x in value):
+      raise ValueError('Value must be a list of cards.')
+    self._cards = value
+
   #Return value of hand taking aces into consideration.
   @property
   def value(self):
