@@ -51,24 +51,25 @@ class Card(object):
     if isinstance(other, Card):
       if (other.name == self.name) and (other.value == self.value):
         return True
-    return False
 
   #Allow Card class to be evaluated by max(list) when in a list.  
   def __lt__(self, other):
     if isinstance(other, Card):
-      if self.value < other.value:
+      if (self.importance < other.importance) and (self.value == other.value):
         return True
-      if (self.value == other.value) and (self.importance < other.importance):
+      if (self.value < other.value):
         return True
-    return False
 
   def __gt__(self, other):
     if isinstance(other, Card):
-      if self.value > other.value:
+      if (self.importance > other.importance) and (self.value == other.value):
         return True
-      if (self.value == other.value) and (self.importance > other.importance):
+      if (self.value > other.value):
         return True
-    return False
+
+  #Implemented for sum(list) to work on cards.
+  def __radd__(self, other):
+    return other + self.value
 
 #Define hand of cards.
 class Hand(object):
@@ -91,21 +92,14 @@ class Hand(object):
   @property
   def value(self):
     ace_index = [ index for index, card in enumerate(self.cards) if card == Card('ace')]
-    while self.__value() > 21 and ace_index:
+    while sum(self.cards) > 21 and ace_index:
       self.cards[ace_index.pop(0)] = Card('ace', 1)
-    return self.__value()
+    return sum(self.cards)
 
   #Return highest ranked card in hand.
   @property
   def highest(self):
     return max(self.cards).name
-
-  #Get current hand value.
-  def __value(self):
-    value = 0
-    for card in self.cards:
-      value = value + card.value     
-    return value
 
 def BlackjackHighest(strArr):
   #Create a hand of cards
