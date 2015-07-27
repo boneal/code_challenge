@@ -102,14 +102,16 @@ class Hand(object):
 def blackjack_highest(strArr):
     #Create a hand of cards.
     hand = Hand(map(Card, strArr))
+    hand_value = hand.value
+    hand_highest = hand.highest
 
     #Return result.
-    if hand.value == 21:
-        return "blackjack " + hand.highest
-    elif hand.value > 21:
-        return "above " + hand.highest
+    if hand_value == 21:
+        return "blackjack " + hand_highest
+    elif hand_value > 21:
+        return "above " + hand_highest
     else:
-        return "below " + hand.highest
+        return "below " + hand_highest
 
 #Print result
 print blackjack_highest(raw_input())
