@@ -81,17 +81,15 @@ class Hand(object):
     #Return value of hand taking aces into consideration.
     @property
     def value(self):
-        normal_ace = Card('ace')
+        value = sum(map(lambda card: card.value, self.cards))
+        high_ace = Card('ace')
         low_ace = Card('ace', 1)
-        ace_index = [index for index, card in enumerate(self.cards) if card == normal_ace]
+        ace_index = [index for index, card in enumerate(self.cards) if card == high_ace]
         pop_an_ace = ace_index.pop
-        while self.__value() > 21 and ace_index:
+        while value > 21 and ace_index:
             self.cards[pop_an_ace(0)] = low_ace
-        return self.__value()
-
-    #Called by value property getter to detect current hand value.
-    def __value(self):
-        return sum(map(lambda card: card.value, self.cards))
+            value += low_ace.value - high_ace.value
+        return value
 
     #Return highest card in hand.
     @property
