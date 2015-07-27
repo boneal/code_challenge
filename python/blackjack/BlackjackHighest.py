@@ -80,7 +80,7 @@ class Hand(object):
   #Performs input validation when adding list of cards.
   @cards.setter
   def cards(self, value):
-    if (type(value) != list) or any(True if not isinstance(x, Card) else False for x in value):
+    if (type(value) != list) or any(False if isinstance(card, Card) else True for card in value):
       raise ValueError('Value must be a list of cards.')
     self._cards = value
 
