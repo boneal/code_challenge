@@ -1,5 +1,5 @@
 #Define a playing card.
-#Suits are not needed for BlackjackHighest to work.
+#Suits are not needed for blackjack_highest function to work.
 class Card(object):
     __RANK = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'ace']
     __CARD_VALUE = {card: i + 1 if i < 10 else 11 if card == 'ace' else 10 for i, card in enumerate(__RANK)}
@@ -16,12 +16,13 @@ class Card(object):
     #Set card name for class using __CARD_VALUE dict as validation set.
     @name.setter
     def name(self, value):
-        if str(value).lower() in self.__CARD_VALUE.keys():
-            self._name = str(value).lower()
+        value = str(value).lower()
+        if value in self.__CARD_VALUE.keys():
+            self._name = value
             self.get_importance()
             self.get_default_value()
         else:
-            raise ValueError('Could not classify ' + str(value) + ' as a playing card.')
+            raise ValueError('Could not classify ' + value + ' as a playing card.')
 
     #Return card value.
     @property
