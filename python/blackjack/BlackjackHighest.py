@@ -84,10 +84,10 @@ class Hand(object):
         value = sum(map(lambda card: card.value, self.cards))
         high_ace = Card('ace')
         low_ace = Card('ace', 1)
-        ace_index = [index for index, card in enumerate(self.cards) if card == high_ace]
-        pop_an_ace = ace_index.pop
+        high_ace_index = [index for index, card in enumerate(self.cards) if card == high_ace]
+        pop = high_ace_index.pop
         while value > 21 and ace_index:
-            self.cards[pop_an_ace(0)] = low_ace
+            self.cards[pop(0)] = low_ace
             value += low_ace.value - high_ace.value
         return value
 
