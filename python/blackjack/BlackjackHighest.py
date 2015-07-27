@@ -61,6 +61,7 @@ class Card(object):
         if isinstance(other, Card):
             if other.name == self.name and other.value == self.value:
                 return True
+        return False
 
     #Allow list of Card class instances to be evaluated by max(list).
     #Card value takes precedence over importance unless card values are equal.
@@ -69,6 +70,7 @@ class Card(object):
             if ((self.importance > other.importance and self.value == other.value) or
                     self.value > other.value):
                 return True
+        return False
 
 
 #Define hand of cards.
@@ -122,12 +124,11 @@ class Hand(object):
         self.__highest = max(self.cards).name
 
 def blackjack_highest(strArr):
-    #Create a hand of cards.
+    #Create a hand of cards and return result.
     hand = Hand(map(Card, strArr))
     hand_highest = hand.highest
     hand_value = hand.value
 
-    #Return result.
     if hand_value == 21:
         return "blackjack " + hand_highest
     elif hand_value > 21:
