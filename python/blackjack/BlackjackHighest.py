@@ -1,8 +1,8 @@
 #Define a playing card.
 #Suits are not needed for BlackjackHighest to work.
 class Card(object):
-    RANK = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'ace']
-    CARD_VALUE = {card: i + 1 if i < 10 else 11 if card == 'ace' else 10 for i, card in enumerate(RANK)}
+    __RANK = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'ace']
+    __CARD_VALUE = {card: i + 1 if i < 10 else 11 if card == 'ace' else 10 for i, card in enumerate(__RANK)}
 
     def __init__(self, card, value=None):
         self.name = card
@@ -13,10 +13,10 @@ class Card(object):
     def name(self):
         return self._name
 
-    #Set card name for class using CARD_VALUE dict as validation set.
+    #Set card name for class using __CARD_VALUE dict as validation set.
     @name.setter
     def name(self, value):
-        if str(value).lower() in self.CARD_VALUE.keys():
+        if str(value).lower() in self.__CARD_VALUE.keys():
             self._name = str(value).lower()
             self.get_importance()
             self.get_default_value()
@@ -42,18 +42,18 @@ class Card(object):
         else:
             self._value = None
 
-    #Set card default value defined in CARD_VALUE dict.
+    #Set card default value defined in __CARD_VALUE dict.
     def get_default_value(self):
-        self.__default_value = self.CARD_VALUE[self.name]
+        self.__default_value = self.__CARD_VALUE[self.name]
 
     #Return card importance.
     @property
     def importance(self):
         return self.__importance
 
-    #Set card importance using RANK list index value.
+    #Set card importance using __RANK list index value.
     def get_importance(self):
-        self.__importance = self.RANK.index(self.name)
+        self.__importance = self.__RANK.index(self.name)
 
     #Check if two Card class instances are equal. Both name and value must be equal.
     def __eq__(self, other):
@@ -119,7 +119,6 @@ class Hand(object):
     #Set highest card in hand.
     def get_highest(self):
         self.__highest = max(self.cards).name
-
 
 def blackjack_highest(strArr):
     #Create a hand of cards.
