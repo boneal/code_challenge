@@ -115,6 +115,7 @@ class Hand(object):
     def highest(self):
         return self.__highest
 
+    #Set highest card in hand.
     def get_highest(self):
         self.__highest = max(self.cards).name
 
