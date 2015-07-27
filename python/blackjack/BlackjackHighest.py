@@ -100,14 +100,15 @@ class Hand(object):
     def get_value(self):
         value = sum(map(lambda card: card.value, self.cards))
         high_ace = Card('ace')
-        high_ace_value = high_ace.value
-        low_ace = Card('ace', 1)
-        low_ace_value = low_ace.value
         high_ace_index = [index for index, card in enumerate(self.cards) if card == high_ace]
-        high_ace_index_pop = high_ace_index.pop
-        while value > 21 and high_ace_index:
-            self.cards[high_ace_index_pop(0)] = low_ace
-            value += low_ace_value - high_ace_value
+        if high_ace_index:
+            high_ace_index_pop = high_ace_index.pop
+            high_ace_value = high_ace.value
+            low_ace = Card('ace', 1)
+            low_ace_value = low_ace.value
+            while value > 21 and high_ace_index:
+                self.cards[high_ace_index_pop(0)] = low_ace
+                value += low_ace_value - high_ace_value
         self.__value = value
 
     #Return highest card in hand.
