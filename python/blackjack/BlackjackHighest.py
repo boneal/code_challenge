@@ -67,10 +67,6 @@ class Card(object):
       if (self.value > other.value):
         return True
 
-  #Implemented for sum(list) to work on cards.
-  def __radd__(self, other):
-    return other + self.value
-
 #Define hand of cards.
 class Hand(object):
   def __init__(self, cards):
@@ -91,11 +87,16 @@ class Hand(object):
   #Return value of hand taking aces into consideration.
   @property
   def value(self):
-    ace_index = [ index for index, card in enumerate(self.cards) if card == Card('ace')]
+    normal_ace = Card('ace')
+    low_ace = Card('ace', 1)
+    ace_index = [ index for index, card in enumerate(self.cards) if card == normal_ace]
     pop_an_ace = ace_index.pop
-    while sum(self.cards) > 21 and ace_index:
-      self.cards[pop_an_ace(0)] = Card('ace', 1)
-    return sum(self.cards)
+    while self.__value > 21 and ace_index:
+      self.cards[pop_an_ace(0)] = low_ace
+    return self.__value
+  
+  def __value(self):
+    return sum(map(lambda card: card.value, self.cards))
 
   #Return highest ranked card in hand.
   @property
@@ -104,7 +105,7 @@ class Hand(object):
 
 def BlackjackHighest(strArr):
   #Create a hand of cards
-  hand = Hand([ Card(string) for string in strArr ])
+  hand = Hand(map(Card, strArr))
 
   #Return result
   if hand.value == 21:
