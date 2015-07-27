@@ -29,7 +29,7 @@ class Card(object):
         else:
             return self._value
 
-    #Set card value. Only needed for ace when flipping between 11 default and 1.
+    #Set card value. Accepts None or an integer value.
     @value.setter
     def value(self, value):
         if value is not None:
@@ -40,20 +40,19 @@ class Card(object):
         else:
             self._value = None
 
-    #Return card rank from RANK list index.
-    #Needed for identifying highest card between several face cards with shared values.
+    #Return card importance using RANK list index value.
     @property
     def importance(self):
         return self.RANK.index(self.name)
 
-    #Check if two Card classes are equal.
-    #Card value gets compared to ensure a default ace and munged ace do not match.
+    #Check if two Card class instances are equal. Both name and value must be equal.
     def __eq__(self, other):
         if isinstance(other, Card):
             if other.name == self.name and other.value == self.value:
                 return True
 
-    #Allow Card class to be evaluated by max(list) when in a list.
+    #Allow list of Card class instances to be evaluated by max(list).
+    #Card value takes precedence over importance unless card values are equal.
     def __gt__(self, other):
         if isinstance(other, Card):
             if ((self.importance > other.importance and self.value == other.value) or
@@ -66,12 +65,12 @@ class Hand(object):
     def __init__(self, cards):
         self.cards = cards
 
-    #Returns list of cards in hand.
+    #Returns list of Card instances.
     @property
     def cards(self):
         return self._cards
 
-    #Performs input validation when adding list of cards.
+    #Validates input is a list of Card instances.
     @cards.setter
     def cards(self, value):
         if (not isinstance(value, list) or
@@ -90,20 +89,21 @@ class Hand(object):
             self.cards[pop_an_ace(0)] = low_ace
         return self.__value()
 
+    #Called by value property getter to detect current hand value.
     def __value(self):
         return sum(map(lambda card: card.value, self.cards))
 
-    #Return highest ranked card in hand.
+    #Return highest card in hand.
     @property
     def highest(self):
         return max(self.cards).name
 
 
 def blackjack_highest(strArr):
-    #Create a hand of cards
+    #Create a hand of cards.
     hand = Hand(map(Card, strArr))
 
-    #Return result
+    #Return result.
     if hand.value == 21:
         return "blackjack " + hand.highest
     elif hand.value > 21:
