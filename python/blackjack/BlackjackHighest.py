@@ -18,14 +18,16 @@ class Card(object):
     def name(self, value):
         if str(value).lower() in self.CARD_VALUE.keys():
             self._name = str(value).lower()
+            self.get_importance()
+            self.get_default_value()
         else:
             raise ValueError('Could not classify ' + str(value) + ' as a playing card.')
 
-    #Return card value defined in CARD_VALUE dict if not set.
+    #Return card value.
     @property
     def value(self):
         if self._value is None:
-            return self.CARD_VALUE[self.name]
+            return self.__default_value
         else:
             return self._value
 
@@ -40,10 +42,18 @@ class Card(object):
         else:
             self._value = None
 
-    #Return card importance using RANK list index value.
+    #Set card default value defined in CARD_VALUE dict.
+    def get_default_value(self):
+        self.__default_value = self.CARD_VALUE[self.name]
+
+    #Return card importance.
     @property
     def importance(self):
-        return self.RANK.index(self.name)
+        return self.__importance
+
+    #Set card importance using RANK list index value.
+    def get_importance(self):
+        self.__importance = self.RANK.index(self.name)
 
     #Check if two Card class instances are equal. Both name and value must be equal.
     def __eq__(self, other):
@@ -77,31 +87,43 @@ class Hand(object):
                any(False if isinstance(card, Card) else True for card in value)):
             raise ValueError('Value must be a list of cards.')
         self._cards = value
+        self.get_value()
+        self.get_highest()
 
-    #Return value of hand taking aces into consideration.
+    #Return hand value.
     @property
     def value(self):
+      return self.__value
+
+    #Set value of hand.
+    #Munge ace card instance values to 1 until value is no longer greater than 21.
+    def get_value(self):
         value = sum(map(lambda card: card.value, self.cards))
         high_ace = Card('ace')
+        high_ace_value = high_ace.value
         low_ace = Card('ace', 1)
+        low_ace_value = low_ace.value
         high_ace_index = [index for index, card in enumerate(self.cards) if card == high_ace]
-        pop = high_ace_index.pop
-        while value > 21 and ace_index:
-            self.cards[pop(0)] = low_ace
-            value += low_ace.value - high_ace.value
-        return value
+        high_ace_index_pop = high_ace_index.pop
+        while value > 21 and high_ace_index:
+            self.cards[high_ace_index_pop(0)] = low_ace
+            value += low_ace_value - high_ace_value
+        self.__value = value
 
     #Return highest card in hand.
     @property
     def highest(self):
-        return max(self.cards).name
+        return self.__highest
+
+    def get_highest(self):
+        self.__highest = max(self.cards).name
 
 
 def blackjack_highest(strArr):
     #Create a hand of cards.
     hand = Hand(map(Card, strArr))
-    hand_value = hand.value
     hand_highest = hand.highest
+    hand_value = hand.value
 
     #Return result.
     if hand_value == 21:
