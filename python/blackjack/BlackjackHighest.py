@@ -86,7 +86,7 @@ class Hand(object):
     #Validates input is a list of Card instances.
     @cards.setter
     def cards(self, value):
-        if (not isinstance(value, list) or
+        if (not isinstance(value, list) or not value or
                any(False if isinstance(card, Card) else True for card in value)):
             raise ValueError('Value must be a list of cards.')
         self._cards = value
