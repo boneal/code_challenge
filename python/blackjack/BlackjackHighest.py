@@ -1,5 +1,6 @@
 #Define a playing card.
 #Suits are not needed for blackjack_highest function to work.
+#Would put @functools.total_ordering here but coderbyte will not import functools.
 class Card(object):
     __RANK = ['two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'ace']
     __CARD_VALUE = {card: i + 2 if i < 9 else 11 if card == 'ace' else 10 for i, card in enumerate(__RANK)}
