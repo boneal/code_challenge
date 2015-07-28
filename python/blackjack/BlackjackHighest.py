@@ -2,7 +2,7 @@
 #Suits are not needed for blackjack_highest function to work.
 class Card(object):
     __RANK = ['two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'ace']
-    __CARD_VALUE = {card: i + 1 if i < 9 else 11 if card == 'ace' else 10 for i, card in enumerate(__RANK)}
+    __CARD_VALUE = {card: i + 2 if i < 9 else 11 if card == 'ace' else 10 for i, card in enumerate(__RANK)}
 
     def __init__(self, card, value=None):
         self.name = card
@@ -139,4 +139,5 @@ def blackjack_highest(strArr):
         return "below " + hand_highest
 
 #Print result
-print blackjack_highest(raw_input())
+#Below allows both local and coderbyte script execution.
+print blackjack_highest(eval(str(raw_input())))
