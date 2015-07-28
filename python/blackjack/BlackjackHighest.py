@@ -1,23 +1,29 @@
-#Define a playing card. Suits are not needed for blackjack_highest function to work.
-#Would put @functools.total_ordering here but coderbyte will not import functools.
-class Card(object):
-    __RANK = ['two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'ace']
-    __CARD_VALUE = {card: i + 2 if i < 9 else 11 if card == 'ace' else 10 for i, card in enumerate(__RANK)}
+import random
+import functools
 
-    def __init__(self, card, value=None):
-        self.name = card
+#Define global variables.
+CARDS = ['two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'ace']
+CARD_VALUE = {card: i + 2 if i < 9 else 11 if card == 'ace' else 10 for i, card in enumerate(CARDS)}
+SUITS = ['hearts', 'spades', 'daimonds', 'clubs']
+
+#Define a playing card. Suits are not needed for blackjack_highest function to work.
+@functools.total_ordering
+class Card(object):
+    def __init__(self, name, value=None, suit=None):
+        self.name = name
         self.value = value
+        self.suit = suit
 
     #Return card name.
     @property
     def name(self):
         return self._name
 
-    #Set card name for class using __RANK list as validation set.
+    #Set card name for class using CARDS list as validation set.
     @name.setter
     def name(self, value):
         value = str(value).lower()
-        if value in self.__RANK:
+        if value in CARDS:
             self._name = value
             self.get_importance()
             self.get_default_value()
@@ -43,18 +49,38 @@ class Card(object):
         else:
             self._value = None
 
-    #Set card default value defined in __CARD_VALUE dict.
+    #Return card suit.
+    @property
+    def suit(self):
+        if self._suit is None:
+            return SUITS[0]
+        else:
+            return self._suit
+
+    #Set card suit.
+    @suit.setter
+    def suit(self, value):
+        if value is not None:
+            value = str(value)
+            if value in SUITS:
+                self._suit = value
+            else:
+                raise ValueError('Value \'' + value + '\' not a valid suit.')
+        else:
+            self._suit = None
+
+    #Set card default value defined in CARD_VALUE dict.
     def get_default_value(self):
-        self.__default_value = self.__CARD_VALUE[self.name]
+        self.__default_value = CARD_VALUE[self.name]
 
     #Return card importance.
     @property
     def importance(self):
         return self.__importance
 
-    #Set card importance using __RANK list index value.
+    #Set card importance using CARDS list index value.
     def get_importance(self):
-        self.__importance = self.__RANK.index(self.name)
+        self.__importance = CARDS.index(self.name)
 
     #Check if two Card class instances are equal. Both name and value must be equal.
     def __eq__(self, other):
@@ -72,6 +98,51 @@ class Card(object):
                 return True
         return False
 
+#Define deck of cards
+class Deck(object):
+    def __init__(self, decks=1):
+        self.decks = decks
+
+    #Return number of decks.
+    @property
+    def decks(self):
+        return self._decks
+
+    #Set number of decks.
+    @decks.setter
+    def decks(self, value):
+        if isinstance(value, int) and value < 9:
+            self._decks = value
+        else:
+            raise ValueError('Value must be an integer less than nine.')
+        self.get_cards()
+
+    #Return cards in deck.
+    @property
+    def cards(self):
+        return self.__cards
+
+    #Set cards in deck.
+    def get_cards(self):
+        deck = []
+        for suit in SUITS:
+            deck += map(lambda name: Card(name, None, suit), CARDS)
+        if self.decks > 1:
+            multi_deck = []
+            for i in list(range(self.decks)):
+                multi_deck = multi_deck + deck
+            deck = multi_deck
+        self.__cards = deck
+
+    #Shuffle cards in deck.
+    def shuffle(self):
+        random.shuffle(self.__cards)
+
+def House(object):
+    pass
+
+def Player(object):
+    pass        
 
 #Define hand of cards.
 class Hand(object):
@@ -131,12 +202,23 @@ def blackjack_highest(strArr):
     hand_highest = hand.highest
     hand_value = hand.value
 
-    if hand_value == 21:
+    if hand_value == 21 and len(hand.cards) == 2:
         return "blackjack " + hand_highest
+    elif hand_value == 21:
+        return "twenty-one " + hand_highest
     elif hand_value > 21:
         return "above " + hand_highest
     else:
         return "below " + hand_highest
 
 #Print result from input.
-print blackjack_highest(eval(str(raw_input())))
+#print blackjack_highest(eval(str(raw_input())))
+
+deck = Deck()
+for card in deck.cards:
+   print card.name + " of " + card.suit
+
+deck.shuffle()
+print "###SHUFFLE###"
+for card in deck.cards:
+   print card.name + " of " + card.suit
