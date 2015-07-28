@@ -13,11 +13,11 @@ class Card(object):
     def name(self):
         return self._name
 
-    #Set card name for class using __CARD_VALUE dict as validation set.
+    #Set card name for class using __RANK list as validation set.
     @name.setter
     def name(self, value):
         value = str(value).lower()
-        if value in self.__CARD_VALUE.keys():
+        if value in self.__RANK:
             self._name = value
             self.get_importance()
             self.get_default_value()
