@@ -1,8 +1,8 @@
 #Define a playing card.
 #Suits are not needed for blackjack_highest function to work.
 class Card(object):
-    __RANK = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'ace']
-    __CARD_VALUE = {card: i + 1 if i < 10 else 11 if card == 'ace' else 10 for i, card in enumerate(__RANK)}
+    __RANK = ['two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'ace']
+    __CARD_VALUE = {card: i + 1 if i < 9 else 11 if card == 'ace' else 10 for i, card in enumerate(__RANK)}
 
     def __init__(self, card, value=None):
         self.name = card
@@ -89,6 +89,8 @@ class Hand(object):
         if (not isinstance(value, list) or not value or
                any(False if isinstance(card, Card) else True for card in value)):
             raise ValueError('Value must be a list of cards.')
+        elif any(True if value.count(card) > 32 else False for card in value):
+            raise ValueError('Hand can not contain more than thirty-two of any single card.')
         self._cards = value
         self.get_value()
         self.get_highest()
