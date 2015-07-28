@@ -1,5 +1,4 @@
-#Define a playing card.
-#Suits are not needed for blackjack_highest function to work.
+#Define a playing card. Suits are not needed for blackjack_highest function to work.
 #Would put @functools.total_ordering here but coderbyte will not import functools.
 class Card(object):
     __RANK = ['two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king', 'ace']
@@ -23,7 +22,7 @@ class Card(object):
             self.get_importance()
             self.get_default_value()
         else:
-            raise ValueError('Could not classify ' + value + ' as a playing card.')
+            raise ValueError('Could not classify \'' + value + '\' as a playing card.')
 
     #Return card value.
     @property
@@ -139,6 +138,5 @@ def blackjack_highest(strArr):
     else:
         return "below " + hand_highest
 
-#Print result
-#Below allows both local and coderbyte script execution.
+#Print result from input.
 print blackjack_highest(eval(str(raw_input())))
