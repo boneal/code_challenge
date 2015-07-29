@@ -9,10 +9,11 @@ SUITS = ['hearts', 'spades', 'daimonds', 'clubs']
 #Define a playing card. Suits are not needed for blackjack_highest function to work.
 @functools.total_ordering
 class Card(object):
-    def __init__(self, name, value=None, suit=None):
+    def __init__(self, name, value=None, suit=None, visible=False):
         self.name = name
         self.value = value
         self.suit = suit
+        self.visible = visible
 
     #Return card name.
     @property
@@ -68,6 +69,18 @@ class Card(object):
                 raise ValueError('Value \'' + value + '\' not a valid suit.')
         else:
             self._suit = None
+
+    #Return whether card is visible or not
+    @property
+    def visible(self):
+        return self._visible
+
+    @visible.setter
+    def visible(self, value):
+        if isinstance(value, bool):
+            self._visible = value
+        else:
+            raise ValueError('Value must be a boolean.')
 
     #Set card default value defined in CARD_VALUE dict.
     def get_default_value(self):
@@ -138,11 +151,48 @@ class Deck(object):
     def shuffle(self):
         random.shuffle(self.__cards)
 
-def House(object):
-    pass
+    #Remove a card from deck
+    def remove_card(self):
+        return self.cards.pop(0)
 
-def Player(object):
-    pass        
+
+class Dealer(object):
+    def __init__(self):
+        self.__cards = []
+
+    @property
+    def cards(self):
+        return self.__cards
+
+    def add_card(self, card):
+        self.__cards.append(card)
+
+    def deal(self, deck, players):
+        for player in players:
+            player.add_card(deck.remove_card())
+        self.add_card(deck.remove_card())
+        for player in players:
+            card = deck.remove_card()
+            card.visible = True
+            player.add_card(card)
+        card = deck.remove_card()
+        card.visible = True
+        self.add_card(card)
+
+
+class Player(object):
+    def __init__(self):
+        self.__cards = []
+
+    @property
+    def cards(self):
+        return self.__cards
+
+    def add_card(self, card):
+        self.__cards.append(card) 
+
+class AI(Player):
+    pass
 
 #Define hand of cards.
 class Hand(object):
@@ -215,10 +265,20 @@ def blackjack_highest(strArr):
 #print blackjack_highest(eval(str(raw_input())))
 
 deck = Deck()
-for card in deck.cards:
-   print card.name + " of " + card.suit
-
 deck.shuffle()
-print "###SHUFFLE###"
-for card in deck.cards:
-   print card.name + " of " + card.suit
+dealer = Dealer()
+players = [Player(), Player()]
+dealer.deal(deck, players)
+print dealer.cards
+for player in players:
+    print player.cards
+#for card in deck.cards:
+#   print card.name + " of " + card.suit
+#
+#dealer = Dealer()
+#dealer.add_card(deck)
+#dealer.add_card(deck)
+#print dealer.cards
+#
+#for card in deck.cards:
+#   print card.name + " of " + card.suit
