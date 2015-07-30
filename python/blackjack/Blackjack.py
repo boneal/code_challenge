@@ -473,8 +473,10 @@ def blackjack_highest(strArr):
     return eval_hand(hand)
 
 #Print result from input.
+#Uncomment line immediate below to just get eval of hand generated from string array. E.G. ["ace","queen"]
 #print "%s\n" % (blackjack_highest(eval(str(raw_input()))))
 
-#Run Game
+#Or run the game
 #Can run game for four players with up to 8 decks like so: Game(4, 8).run()
+#Comment below line out if you don't like playing games. :(
 Game().run()
