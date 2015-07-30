@@ -173,8 +173,9 @@ class Deck(object):
 
 #Define hand of cards.
 class Hand(object):
-    def __init__(self):
+    def __init__(self, split=False):
         self.__cards = []
+        self.split = split
 
     #Returns list of Card instances.
     @property
@@ -189,6 +190,20 @@ class Hand(object):
             self.__get_highest()
         else:
             raise ValueError('Not a card.')
+
+    #Returns whether hand is a split or not.
+    #Needed for identifying two cards valued at 21 as not a blackjack.
+    @property
+    def split(self):
+        return self._split
+
+    #Set split value.
+    @split.setter
+    def split(self, value):
+        if isinstance(value, bool):
+            self._split = value
+        else:
+            raise ValueError('Not a boolean.')
 
     #Return hand value.
     @property
@@ -275,9 +290,10 @@ class Player(object):
     def split(self, hand):
         cards = hand.cards
         if len(cards) == 2 and all(card.value == cards[0].value for card in cards):
-            new_hand = Hand()
+            new_hand = Hand(True)
             new_hand.add_card(cards.pop(-1))
             self.hands.append(new_hand)
+            hand.split = True
             for hand in self.hands:
                 if hand:
                     hand.add_card(DECK.remove_card())
@@ -439,7 +455,7 @@ def eval_winner(player_hand, index, house_hand):
         print "won"
     elif house_hand.value == 21 == player_hand.value:
         if len(house_hand.cards) == 2:
-            if len(player_hand.cards) == 2:
+            if len(player_hand.cards) == 2 and not player_hand.split:
                 print "push"
             else:
                 print "lost"
@@ -454,7 +470,7 @@ def eval_hand(hand):
         hand_highest = hand.highest
         hand_value = hand.value
         
-        if hand_value == 21 and len(hand.cards) == 2:
+        if hand_value == 21 and len(hand.cards) == 2 and not hand.split:
             return "%s blackjack %s" % (hand_value, hand_highest)
         elif hand_value == 21:
             return "%s twenty-one %s" % (hand_value, hand_highest)
