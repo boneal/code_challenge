@@ -7,11 +7,12 @@ CARDS = ['two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
 #Dict containing CARDS as keys and associated numeric value.
 CARD_VALUE = {card: i + 2 if i < 9 else 11 if card == 'ace' else 10 for i, card in enumerate(CARDS)}
 #List of possible card suits.
-SUITS = ['hearts', 'spades', 'daimonds', 'clubs']
+SUITS = ['hearts', 'spades', 'diamonds', 'clubs']
 #Cards shared by Game, Deck and Player classes.
 DECK = None
 #Players shared by Game and Player classes.
 PLAYERS = None
+
 
 #Define a playing card. Suits are not needed for blackjack_highest function to work.
 @functools.total_ordering
@@ -118,6 +119,7 @@ class Card(object):
                 return True
         return False
 
+
 #Define deck of cards
 class Deck(object):
     def __init__(self, decks=1):
@@ -170,6 +172,7 @@ class Deck(object):
     #Adds cards back to used card deck.
     def return_card(self, value):
         self.__used_cards.append(value)
+
 
 #Define hand of cards.
 class Hand(object):
@@ -327,8 +330,11 @@ class Game(object):
 
     #Set all players including house. House goes last.
     def __set_players(self, count):
-        global PLAYERS
-        PLAYERS = [Player() for i in list(range(count))] + [self.house]
+        if count > 4:
+            raise ValueError("Can not have more than four players in game.")
+        else:
+            global PLAYERS
+            PLAYERS = [Player() for i in list(range(count))] + [self.house]
 
     #Get the deck.
     @property
@@ -350,11 +356,61 @@ class Game(object):
                     card.visible = bool(i)
                     player.hands[0].add_card(card)
 
+    #Function for print a player's current hand.
+    def print_hand(self, index, hand):
+        print "  Hand %s:" % (index + 1)
+        print "    Cards:"
+        for card in hand.cards:
+            print "      %s of %s" % (card.name, card.suit)
+        print "    Eval: %s" % (self.eval_hand(hand))
+
+    #Who wins!!?!?!?
+    def print_winner(self, player_hand, index, house_hand):
+        print "  Hand %s" % (index + 1),
+        if player_hand.value > 21:
+            print "lost"
+        elif house_hand.value > 21:
+            print "won"
+        elif player_hand.value < house_hand.value:
+            print "lost"
+        elif player_hand.value > house_hand.value:
+            print "won"
+        elif house_hand.value == 21 == player_hand.value:
+            if len(house_hand.cards) == 2:
+                if len(player_hand.cards) == 2 and not player_hand.split:
+                    print "push"
+                else:
+                    print "lost"
+            elif player_hand.value == 21:
+                print "won"
+            else:
+                print "push"
+        else:
+            print "push"
+
+    #Creates a string that returns hand value, blackjack status, and highest value card.
+    def eval_hand(self, hand):
+        if hand.cards:
+            hand_highest = hand.highest
+            hand_value = hand.value
+            
+            if hand_value == 21 and len(hand.cards) == 2 and not hand.split:
+                return "%s blackjack %s" % (hand_value, hand_highest)
+            elif hand_value == 21:
+                return "%s twenty-one %s" % (hand_value, hand_highest)
+            elif hand_value > 21:
+                return "%s above %s" % (hand_value, hand_highest)
+            else:
+                return "%s below %s" % (hand_value, hand_highest)
+        else:
+            return "none"
+
     #Game run logic
     def run(self):
         self.__deal()
         #Need more than one player to play.
         while sum(isinstance(x, Player) for x in PLAYERS) > 1:
+            house_hand = self.house.hands[0]
             #Start round.
             for player in PLAYERS:
                 #Skip players that exited the game.
@@ -365,25 +421,24 @@ class Game(object):
                 if player is self.house:
                     #Show house's initial hand to players
                     print "House's initial hand:"
-                    print_hand(self.house, self.house.hands[0])
-                    hand = self.house.hands[0]
-                    while hand.value < 17:
-                        player.hit(hand)
+                    self.print_hand(0, house_hand)
+                    while house_hand.value < 17:
+                        player.hit(house_hand)
                     #Show house's final hand.
                     print "House's final hand:"
-                    print_hand(self.house, self.house.hands[0])
+                    self.print_hand(0, house_hand)
                 #Player actions.
                 else:
                     print "%s\'s turn:" % (player.name)
                     #Print house card visible to player.
                     print "  Visible house card:"
-                    for card in self.house.hands[0].cards:
+                    for card in house_hand.cards:
                         if card.visible:
                             print "    %s of %s" % (card.name, card.suit)
                     #Iterate player hands. Only one hand unless a split occurs.
                     for index, hand in enumerate(player.hands):
                         input = None
-                        print_hand(player, hand)
+                        self.print_hand(index, hand)
                         #Continue playing hand unless player exits game.
                         while input != 'EXIT':
                             #Ask for input until a valid value is returned.
@@ -392,10 +447,10 @@ class Game(object):
                                 input = raw_input("  Perform action: HIT, SPLIT, STAND or EXIT\n").upper()
                                 if input == 'HIT':
                                     player.hit(hand)
-                                    print_hand(player, hand)
+                                    self.print_hand(index, hand)
                                 elif input == 'SPLIT':
                                     player.split(hand)
-                                    print_hand(player, hand)
+                                    self.print_hand(index, hand)
                                 elif input == 'EXIT':
                                     player.exit_game()
                                 elif input == 'STAND':
@@ -422,7 +477,7 @@ class Game(object):
                     print "%s:" % (player.name)
                 for index, hand in enumerate(player.hands):
                     if player != self.house:
-                        eval_winner(hand, index, self.house.hands[0])
+                        self.print_winner(hand, index, house_hand)
                     player.return_hand(hand)
             print "\n"
             #Shuffle deck if over 75 percent consumed.
@@ -434,65 +489,17 @@ class Game(object):
             #Deal new cards from deck to players
             self.__deal()
 
-#Function for print a player's current hand.
-def print_hand(player, hand):
-    print "  Hand %s:" % (player.hands.index(hand) + 1)
-    print "    Cards:"
-    for card in hand.cards:
-        print "      %s of %s" % (card.name, card.suit)
-    print "    Eval: %s" % (eval_hand(hand))
-
-#Who wins!!?!?!?
-def eval_winner(player_hand, index, house_hand):
-    print "  Hand %s" % (index + 1),
-    if player_hand.value > 21:
-        print "lost"
-    elif house_hand.value > 21:
-        print "won"
-    elif player_hand.value < house_hand.value:
-        print "lost"
-    elif player_hand.value > house_hand.value:
-        print "won"
-    elif house_hand.value == 21 == player_hand.value:
-        if len(house_hand.cards) == 2:
-            if len(player_hand.cards) == 2 and not player_hand.split:
-                print "push"
-            else:
-                print "lost"
-        else:
-            print "lost"
-    else:
-        print "push"
-        
-#Creates a string that returns hand value, blackjack status, and highest value card.
-def eval_hand(hand):
-    if hand.cards:
-        hand_highest = hand.highest
-        hand_value = hand.value
-        
-        if hand_value == 21 and len(hand.cards) == 2 and not hand.split:
-            return "%s blackjack %s" % (hand_value, hand_highest)
-        elif hand_value == 21:
-            return "%s twenty-one %s" % (hand_value, hand_highest)
-        elif hand_value > 21:
-            return "%s above %s" % (hand_value, hand_highest)
-        else:
-            return "%s below %s" % (hand_value, hand_highest)
-    else:
-        return "none"
 
 #Runs eval hand on a hand generated from user input.
 def blackjack_highest(strArr):
     hand = Hand()
     cards = map(Card, strArr)
     map(hand.add_card, cards)
-    return eval_hand(hand)
+    return Game().eval_hand(hand)
 
-#Print result from input.
-#Uncomment line immediate below to just get eval of hand generated from string array. E.G. ["ace","queen"]
-#print "%s\n" % (blackjack_highest(eval(str(raw_input()))))
+#Print result from input. Uncomment line immediately below to get eval of hand generated from string array. E.G. ["ace","queen"]
+#print "%s\n" % (blackjack_highest(eval(str(raw_input("Supply a string that can be evaluated as an array. e.g. [\"ace\",\"queen\"]\n")))))
 
-#Or run the game
 #Can run game for four players with up to 8 decks like so: Game(4, 8).run()
 #Comment below line out if you don't like playing games. :(
 Game().run()
