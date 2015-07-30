@@ -376,12 +376,9 @@ class Game(object):
         elif player_hand.value > house_hand.value:
             print "won"
         elif house_hand.value == 21 == player_hand.value:
-            if len(house_hand.cards) == 2:
-                if len(player_hand.cards) == 2 and not player_hand.split:
-                    print "push"
-                else:
-                    print "lost"
-            elif player_hand.value == 21:
+            if len(house_hand.cards) == 2 and (len(player_hand.cards) != 2 or player_hand.split):
+                print "lost"
+            elif len(house_hand.cards) != 2 and len(player_hand.cards) == 2 and not player_hand.split:
                 print "won"
             else:
                 print "push"
