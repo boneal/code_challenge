@@ -153,7 +153,7 @@ class Deck(object):
         if self.decks > 1:
             multi_deck = []
             for i in list(range(self.decks)):
-                multi_deck = multi_deck + deck
+                multi_deck = multi_deck + list(deck)
             deck = multi_deck
         return deck
 
@@ -176,7 +176,8 @@ class Deck(object):
 
 #Define hand of cards.
 class Hand(object):
-    def __init__(self, split=False):
+    def __init__(self, split=False, bet=0):
+        self.bet = bet
         self.__cards = []
         self.split = split
 
@@ -250,19 +251,20 @@ class Hand(object):
 class Player(object):
     __Players = []
 
-    def __init__(self):
-        self.__hands = [Hand()]
+    def __init__(self, allowance=500):
+        self.allowance = allowance
+        self.bank = self.allowance
+        self.hands = [Hand()]
         self.__name = self.__set_name()
-
-    #Return player hands.
-    @property
-    def hands(self):
-        return self.__hands
 
     #Return player name.
     @property
     def name(self):
         return self.__name
+
+    #Set player initial hand
+    def set_hands(self):
+        self.hands = [Hand()]
 
     #Set player name.
     def __set_name(self):
@@ -276,12 +278,8 @@ class Player(object):
 
     #Return cards in current hand to deck.
     def return_hand(self, hand):
-        if hand:
-            for card in hand.cards:
-                DECK.return_card(card)
-            self.hands[self.hands.index(hand)] = None
-        if not sum(isinstance(x, Hand) for x in self.hands):
-            self.__hands = [Hand()]
+        for card in hand.cards:
+            DECK.return_card(card)
 
     #Remove player from game.
     def exit_game(self):
@@ -293,27 +291,52 @@ class Player(object):
     def split(self, hand):
         cards = hand.cards
         if len(cards) == 2 and all(card.value == cards[0].value for card in cards):
-            new_hand = Hand(True)
+            new_hand = Hand(True, self.bet(hand.bet))
+            hand.split = True
             new_hand.add_card(cards.pop(-1))
             self.hands.append(new_hand)
-            hand.split = True
-            for hand in self.hands:
-                if hand:
-                    hand.add_card(DECK.remove_card())
+            hand.add_card(DECK.remove_card())
         else:
             print "  Can only split a pair with shared card value."
+
+    #Assign amount from bank to hand.
+    def bet(self, value):
+        self.bank = self.bank - value
+        return value
 
 
 #Define House. Essentially a player with different name...
 class House(Player):
+    #House name is always house
     @property
     def name(self):
         return "House"
 
+    #House bank always starts at 0
+    @property
+    def allowance(self):
+        return self._allowance
+
+    @allowance.setter
+    def allowance(self, value):
+        self._allowance = 0
+
+    #house hands never have a bet
+    @property
+    def hands(self):
+        return self._hands
+
+    @hands.setter
+    def hands(self, value):
+        self._hands = [Hand()]
+
 
 #Define blackjack game.
 class Game(object):
-    def __init__(self, players=1, decks=1):
+    def __init__(self, players=1, decks=2, player_allowance=500, minimum_bet=5, maximum_bet=50):
+        self.player_allowance = player_allowance
+        self.minimum_bet = minimum_bet
+        self.maximum_bet = maximum_bet
         self.__house = House()
         self.__set_players(players)
         self.__set_deck(decks)
@@ -334,7 +357,7 @@ class Game(object):
             raise ValueError("Can not have more than four players in game.")
         else:
             global PLAYERS
-            PLAYERS = [Player() for i in list(range(count))] + [self.house]
+            PLAYERS = [Player(self.player_allowance) for i in list(range(count))] + [self.house]
 
     #Get the deck.
     @property
@@ -365,25 +388,41 @@ class Game(object):
         print "    Eval: %s" % (self.eval_hand(hand))
 
     #Who wins!!?!?!?
-    def print_winner(self, player_hand, index, house_hand):
+    def eval_round(self, player, player_hand, index, house_hand):
         print "  Hand %s" % (index + 1),
         if player_hand.value > 21:
-            print "lost"
-        elif house_hand.value > 21:
-            print "won"
-        elif player_hand.value < house_hand.value:
-            print "lost"
-        elif player_hand.value > house_hand.value:
-            print "won"
-        elif house_hand.value == 21 == player_hand.value:
-            if len(house_hand.cards) == 2 and (len(player_hand.cards) != 2 or player_hand.split):
-                print "lost"
-            elif len(house_hand.cards) != 2 and len(player_hand.cards) == 2 and not player_hand.split:
-                print "won"
+            result = "lost"
+        elif player_hand.value == 21:
+            if (len(house_hand.cards) == 2 and (len(player_hand.cards) != 2 or player_hand.split) and
+                    house_hand.value == 21):
+                result = "lost"
+            elif len(player_hand.cards) == 2 and not player_hand.split and len(house_hand.cards) != 2:
+                result = "blackjack"
+            elif player_hand.value > house_hand.value:
+                result = "won"
             else:
-                print "push"
+                result = "push"
+        elif house_hand.value > 21:
+            result = "won"
+        elif player_hand.value < house_hand.value:
+            result = "lost"
+        elif player_hand.value > house_hand.value:
+            result = "won"
         else:
-            print "push"
+            result = "push"
+
+        if result == 'lost':
+            self.house.bank += player_hand.bet
+        elif result == 'won':
+            self.house.bank += -(player_hand.bet)
+            player.bank += (player_hand.bet * 2)
+        elif result == 'blackjack':
+            winnings = player_hand.bet * 1.5
+            self.house.bank += -(winnings)
+            player.bank += (player_hand.bet + winnings)
+        else:
+            player.bank += player_hand.bet
+        print result
 
     #Creates a string that returns hand value, blackjack status, and highest value card.
     def eval_hand(self, hand):
@@ -408,6 +447,21 @@ class Game(object):
         #Need more than one player to play.
         while sum(isinstance(x, Player) for x in PLAYERS) > 1:
             house_hand = self.house.hands[0]
+            #Get bets
+            print "Minimum bet is %s. Maximum is %s." % (self.minimum_bet, self.maximum_bet)
+            for player in PLAYERS:
+                if not player or player is self.house:
+                    continue
+                valid_input = False
+                while not valid_input:
+                    input = raw_input("%s place bet.\n" % player.name)
+                    if input is '':
+                        input = str(self.minimum_bet)
+                    if input.isdigit() > 0 and self.minimum_bet <= int(input) <= self.maximum_bet:
+                         player.hands[0].bet = player.bet(int(input))
+                         valid_input = True
+                    else:
+                        print "Value is not an integer or not within min/max limits."
             #Start round.
             for player in PLAYERS:
                 #Skip players that exited the game.
@@ -426,7 +480,8 @@ class Game(object):
                     self.print_hand(0, house_hand)
                 #Player actions.
                 else:
-                    print "%s\'s turn:" % (player.name)
+                    print "%s\'s turn:" % player.name
+                    print "  Bank: %s" % player.bank
                     #Print house card visible to player.
                     print "  Visible house card:"
                     for card in house_hand.cards:
@@ -434,8 +489,12 @@ class Game(object):
                             print "    %s of %s" % (card.name, card.suit)
                     #Iterate player hands. Only one hand unless a split occurs.
                     for index, hand in enumerate(player.hands):
+                        #Add card to player's next hand if a split.
+                        if hand.split:
+                            hand.add_card(DECK.remove_card())
                         input = None
                         self.print_hand(index, hand)
+                        print "    Bet: %s" % hand.bet
                         #Continue playing hand unless player exits game.
                         while input != 'EXIT':
                             #Ask for input until a valid value is returned.
@@ -445,9 +504,11 @@ class Game(object):
                                 if input == 'HIT':
                                     player.hit(hand)
                                     self.print_hand(index, hand)
+                                    print "    Bet: %s" % hand.bet
                                 elif input == 'SPLIT':
                                     player.split(hand)
                                     self.print_hand(index, hand)
+                                    print "    Bet: %s" % hand.bet
                                 elif input == 'EXIT':
                                     player.exit_game()
                                 elif input == 'STAND':
@@ -474,8 +535,10 @@ class Game(object):
                     print "%s:" % (player.name)
                 for index, hand in enumerate(player.hands):
                     if player != self.house:
-                        self.print_winner(hand, index, house_hand)
+                        self.eval_round(player, hand, index, house_hand)
                     player.return_hand(hand)
+                player.set_hands()
+            print "House Bank: %s" % self.house.bank
             print "\n"
             #Shuffle deck if over 75 percent consumed.
             if len(self.deck.cards) < (self.deck.decks * 13):
